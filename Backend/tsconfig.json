@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "rootDir": "./",           // Change from "./src" to "./"
+    "outDir": "./dist",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ESNext",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["**/*.ts"],      // Include all TS files in the project
+  "exclude": ["node_modules", "dist"]
+}
