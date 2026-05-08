@@ -1,3 +1,8 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,10 +11,275 @@ datasource db {
   provider = "postgresql"
 }
 
-// Example Model (Similar to a Java Entity)
+// ─────────────────────────────────────────────
+//  USER  (Buyer account)
+// ─────────────────────────────────────────────
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
+  id       String  @id @default(cuid())
+  email    String  @unique
+  password String
+  username String  @unique
+  fullName String
+  avatar   String?
+  bio      String?
+  phone    String?
+
+  // Location (for hyperlocal feed)
+  city      String?
+  state     String?
+  latitude  Float?
+  longitude Float?
+
+  isVerified Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  orders        Order[]
+  refreshTokens RefreshToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+//  SELLER  (Business / Shop account)
+// ─────────────────────────────────────────────
+model Seller {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  password     String
+  businessName String
+  ownerName    String
+  logo         String?
+  coverImage   String?
+  bio          String?
+  phone        String?
+  category     SellerCategory
+
+  // Location
+  address   String?
+  city      String?
+  state     String?
+  latitude  Float?
+  longitude Float?
+
+  isVerified Boolean @default(false)
+  isActive   Boolean @default(true)
+  rating     Float   @default(0)
+  totalSales Int     @default(0)
+
+  products      Product[]
+  posts         Post[]
+  liveStreams   LiveStream[]
+  orders        Order[]
+  refreshTokens RefreshToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SellerCategory {
+  FASHION
+  ELECTRONICS
+  FOOD_BEVERAGE
+  HOME_DECOR
+  BEAUTY_WELLNESS
+  SPORTS_FITNESS
+  BOOKS_STATIONERY
+  TOYS_KIDS
+  JEWELLERY
+  OTHER
+}
+
+// ─────────────────────────────────────────────
+//  PRODUCT
+// ─────────────────────────────────────────────
+model Product {
+  id          String  @id @default(cuid())
+  sellerId    String
+  seller      Seller  @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String
+  price       Float
+  discountPrice Float?
+  images      String[]  // array of image URLs
+  stock       Int      @default(0)
+  category    String
+  tags        String[]
+
+  isActive Boolean @default(true)
+
+  postProducts       PostProduct[]
+  liveStreamProducts LiveStreamProduct[]
+  orderItems         OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+//  POST  (Seller post with product tags)
+// ─────────────────────────────────────────────
+model Post {
+  id       String    @id @default(cuid())
+  sellerId String
+  seller   Seller    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  caption   String
+  mediaUrls String[]   // images or video URLs
+  mediaType MediaType  @default(IMAGE)
+
+  postProducts PostProduct[]
+  orders       Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+// Junction: Post ↔ Product (tagged products in a post)
+model PostProduct {
+  id        String  @id @default(cuid())
+  postId    String
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, productId])
+}
+
+// ─────────────────────────────────────────────
+//  LIVE STREAM
+// ─────────────────────────────────────────────
+model LiveStream {
+  id       String       @id @default(cuid())
+  sellerId String
+  seller   Seller       @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  title       String
+  thumbnail   String?
+  description String?
+
+  status      StreamStatus @default(SCHEDULED)
+  streamKey   String       @unique @default(cuid())
+  playbackUrl String?
+
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  endedAt     DateTime?
+
+  viewerCount Int @default(0)
+  peakViewers Int @default(0)
+
+  liveProducts LiveStreamProduct[]
+  orders       Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum StreamStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+// Junction: LiveStream ↔ Product (product cards shown during stream)
+model LiveStreamProduct {
+  id           String     @id @default(cuid())
+  liveStreamId String
+  liveStream   LiveStream @relation(fields: [liveStreamId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  isPinned     Boolean @default(false) // currently highlighted card on stream
+  displayOrder Int     @default(0)
+
+  @@unique([liveStreamId, productId])
+}
+
+// ─────────────────────────────────────────────
+//  ORDER
+// ─────────────────────────────────────────────
+model Order {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id])
+
+  // Where the order came from
+  source       OrderSource
+  liveStreamId String?
+  liveStream   LiveStream? @relation(fields: [liveStreamId], references: [id])
+  postId       String?
+  post         Post?       @relation(fields: [postId], references: [id])
+
+  status OrderStatus @default(PENDING)
+
+  subtotal    Float
+  deliveryFee Float @default(0)
+  total       Float
+
+  // Snapshot of delivery address at order time
+  deliveryAddress Json // { name, phone, street, city, state, pincode }
+
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrderSource {
+  LIVE_STREAM  // bought during a live session
+  POST         // bought from a seller post
+  DIRECT       // bought from seller's shop profile
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+// ─────────────────────────────────────────────
+//  ORDER ITEM
+// ─────────────────────────────────────────────
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity      Int
+  priceSnapshot Float  // price at the time of order (in case product price changes later)
+  titleSnapshot String // product name at the time of order
+
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+//  REFRESH TOKEN  (works for both User & Seller)
+// ─────────────────────────────────────────────
+model RefreshToken {
+  id    String @id @default(cuid())
+  token String @unique
+
+  userId   String?
+  user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sellerId String?
+  seller   Seller? @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
   createdAt DateTime @default(now())
 }
