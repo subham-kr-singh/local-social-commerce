@@ -5,8 +5,6 @@ import { env } from "./config/env.js";
 
 async function bootstrap() {
   try {
-    await mongoose.connect(env.MONGO_URI);
-    console.log("🍃 MongoDB connected");
 
     await prisma.$connect();
     console.log("🗄️  PostgreSQL connected via Prisma");

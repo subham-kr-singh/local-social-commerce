@@ -3,6 +3,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger.config.js";
 import { env } from "./config/env.js";
 import { errorMiddleware } from "./shared/middleware/error.middleware.js";
 import authRouter from "./modules/auth/auth.routes.js";
@@ -36,9 +38,36 @@ class App {
       res.status(200).json({ message: "Server is healthy" });
     });
 
+    // ── API Docs ─────────────────────────────────────────────────────────────
+    this.app.use(
+      "/api/docs",
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerSpec, {
+        customSiteTitle: "Social Commerce API",
+        customCss: `
+          .topbar { display: none }
+          .swagger-ui .info { margin: 20px 0 }
+        `,
+        swaggerOptions: {
+          persistAuthorization: true,          // keeps Bearer token across page refresh
+          displayRequestDuration: true,        // shows response time in ms
+          filter: true,                        // search bar across endpoints
+          defaultModelsExpandDepth: 2,
+          defaultModelExpandDepth: 2,
+        },
+      }),
+    );
+
+    // Expose raw OpenAPI JSON for tools like Postman / Insomnia
+    this.app.get("/api/docs.json", (_req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(swaggerSpec);
+    });
+
+    // ── API Routes ────────────────────────────────────────────────────────────
     this.app.use("/api/v1/auth", authRouter);
 
-    // Global error handler — must be LAST
+    // ── Global Error Handler (must stay last) ─────────────────────────────────
     this.app.use(errorMiddleware);
   }
 
