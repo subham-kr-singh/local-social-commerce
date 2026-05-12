@@ -37,6 +37,8 @@ export const registerUserSchema = z.object({
     .regex(/^\d{10}$/, "Phone must be 10 digits")
     .optional(),
   city: z.string().trim().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export const loginSchema = z.object({
@@ -62,6 +64,8 @@ export const registerSellerSchema = z.object({
   category: z.enum(SELLER_CATEGORIES, { error: "Invalid category" }),
   city: z.string().trim().optional(),
   address: z.string().trim().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 // ── Inferred Types ────────────────────────────────────────────────────────────
@@ -96,6 +100,8 @@ export type SafeUser = {
   avatar: string | null;
   phone: string | null;
   city: string | null;
+  latitude: number | null;
+  longitude: number | null;
   isVerified: boolean;
   createdAt: Date;
 };
@@ -109,6 +115,8 @@ export type SafeSeller = {
   phone: string;
   category: string;
   city: string | null;
+  latitude: number | null;
+  longitude: number | null;
   isVerified: boolean;
   rating: number;
   totalSales: number;

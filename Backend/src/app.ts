@@ -7,7 +7,8 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.config.js";
 import { env } from "./config/env.js";
 import { errorMiddleware } from "./shared/middleware/error.middleware.js";
-import authRouter from "./modules/auth/auth.routes.js";
+import v1Router from "./routes/v1.routes.js";
+import { attachSocketIoRedisAdapter } from "./realtime/socket.setup.js";
 
 class App {
   public app: Application;
@@ -20,6 +21,7 @@ class App {
     this.io = new Server(this.httpServer, {
       cors: { origin: env.CORS_ORIGIN, methods: ["GET", "POST"] },
     });
+    attachSocketIoRedisAdapter(this.io);
 
     this.setMiddlewares();
     this.setRoutes();
@@ -65,7 +67,7 @@ class App {
     });
 
     // ── API Routes ────────────────────────────────────────────────────────────
-    this.app.use("/api/v1/auth", authRouter);
+    this.app.use("/api/v1", v1Router);
 
     // ── Global Error Handler (must stay last) ─────────────────────────────────
     this.app.use(errorMiddleware);

@@ -1,6 +1,5 @@
 import app from "./app.js";
 import { prisma } from "./db/prisma.client.js";
-import mongoose from "mongoose";
 import { env } from "./config/env.js";
 
 async function bootstrap() {
