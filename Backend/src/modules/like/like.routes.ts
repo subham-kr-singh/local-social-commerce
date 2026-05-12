@@ -1,6 +1,25 @@
 import { Router } from "express";
-import { likeNotImplemented } from "./like.controller.js";
+import { requireUser } from "../auth/auth.middleware.js";
+import { validate, validateQuery } from "../../shared/middleware/validate.middleware.js";
+import {
+  likeBodySchema,
+  unlikeBodySchema,
+  likeCountQuerySchema,
+} from "./like.types.js";
+import {
+  likeController,
+  unlikeController,
+  likeCountController,
+} from "./like.controller.js";
 
 const router = Router();
-router.use(likeNotImplemented);
+
+router.post("/", requireUser, validate(likeBodySchema), likeController);
+router.delete("/", requireUser, validate(unlikeBodySchema), unlikeController);
+router.get(
+  "/count",
+  validateQuery(likeCountQuerySchema),
+  likeCountController,
+);
+
 export default router;
