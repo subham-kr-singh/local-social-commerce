@@ -4,6 +4,8 @@ declare global {
   namespace Express {
     interface Request {
       user?: JwtAuthPayload;
+      /** Set by `validateQuery` middleware */
+      validatedQuery?: Record<string, unknown>;
     }
   }
 }

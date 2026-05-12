@@ -25,3 +25,9 @@ export const SELLER_CATEGORIES = [
 ] as const;
 
 export type SellerCategory = (typeof SELLER_CATEGORIES)[number];
+
+/** Redis TTL seconds — follower count cache (LLD §2.3) */
+export const REDIS_TTL_FOLLOWER_COUNT_SEC = 300;
+
+/** Redis TTL seconds — personalised feed page cache */
+export const REDIS_TTL_FEED_PAGE_SEC = 120;
