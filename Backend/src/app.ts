@@ -92,6 +92,19 @@ class App {
         }
       });
 
+      // Clients can join a livestream room to receive realtime stream events.
+      socket.on("join-stream", (payload: unknown) => {
+        if (
+          payload &&
+          typeof payload === "object" &&
+          "streamId" in payload &&
+          typeof (payload as { streamId: unknown }).streamId === "string"
+        ) {
+          const streamId = (payload as { streamId: string }).streamId;
+          socket.join(`stream:${streamId}`);
+        }
+      });
+
       socket.on("disconnect", () => {
         console.log(`🔌 Socket disconnected: ${socket.id}`);
       });

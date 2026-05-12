@@ -43,3 +43,20 @@ export const requireSeller = (
   req.user = payload;
   next();
 };
+
+// Accepts either buyer or seller JWT and attaches req.user.
+export const requireAuth = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): void => {
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Bearer ")) {
+    return next(new ApiError(401, "No token provided"));
+  }
+
+  const token = header.split(" ")[1] as string;
+  const payload = verifyAccessToken(token);
+  req.user = payload;
+  next();
+};
