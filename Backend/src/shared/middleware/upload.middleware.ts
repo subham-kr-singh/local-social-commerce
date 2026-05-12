@@ -21,3 +21,12 @@ export const uploadMemoryMedia = multer({
     else cb(new Error("Only image/video uploads are allowed"));
   },
 });
+
+export const uploadMemoryImages = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (imageMime.test(file.mimetype)) cb(null, true);
+    else cb(new Error("Only image uploads are allowed"));
+  },
+});
