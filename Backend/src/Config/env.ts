@@ -16,6 +16,9 @@ const envSchema = z.object({
   REDIS_URL:            z.string().optional(),
   AGORA_APP_ID:         z.string().optional(),
   AGORA_APP_CERTIFICATE: z.string().optional(),
+  IMAGEKIT_PUBLIC_KEY:  z.string().optional(),
+  IMAGEKIT_PRIVATE_KEY: z.string().optional(),
+  IMAGEKIT_URL_ENDPOINT: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
