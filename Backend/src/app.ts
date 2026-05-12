@@ -9,6 +9,7 @@ import { env } from "./config/env.js";
 import { errorMiddleware } from "./shared/middleware/error.middleware.js";
 import v1Router from "./routes/v1.routes.js";
 import { attachSocketIoRedisAdapter } from "./realtime/socket.setup.js";
+import { setIo } from "./realtime/io.js";
 
 class App {
   public app: Application;
@@ -22,6 +23,7 @@ class App {
       cors: { origin: env.CORS_ORIGIN, methods: ["GET", "POST"] },
     });
     attachSocketIoRedisAdapter(this.io);
+    setIo(this.io);
 
     this.setMiddlewares();
     this.setRoutes();
@@ -76,6 +78,20 @@ class App {
   private setSocketEvents(): void {
     this.io.on("connection", (socket) => {
       console.log(`🔌 Socket connected: ${socket.id}`);
+
+      // Clients can join a personal room for targeted events.
+      socket.on("join", (payload: unknown) => {
+        if (
+          payload &&
+          typeof payload === "object" &&
+          "userId" in payload &&
+          typeof (payload as { userId: unknown }).userId === "string"
+        ) {
+          const userId = (payload as { userId: string }).userId;
+          socket.join(`user:${userId}`);
+        }
+      });
+
       socket.on("disconnect", () => {
         console.log(`🔌 Socket disconnected: ${socket.id}`);
       });
