@@ -4,6 +4,7 @@ import { ApiError } from "../../shared/utils/ApiError.js";
 import { ApiResponse } from "../../shared/utils/ApiResponse.js";
 import { prisma } from "../../db/prisma.client.js";
 import { getIo } from "../../realtime/io.js";
+import type { Prisma } from "../../generated/prisma/index.js";
 
 const sellerSelect = {
   select: {
@@ -54,7 +55,10 @@ export const createOrderController = asyncHandler(async (req: Request, res: Resp
     throw new ApiError(400, "One or more products are invalid");
   }
 
-  const byId = new Map(products.map((p) => [p.id, p]));
+  type OrderLineProduct = (typeof products)[number];
+  const byId = new Map<string, OrderLineProduct>(
+    products.map((p: OrderLineProduct) => [p.id, p]),
+  );
   for (const item of body.items) {
     const p = byId.get(item.productId)!;
     if (p.stock < item.quantity) {
@@ -69,7 +73,7 @@ export const createOrderController = asyncHandler(async (req: Request, res: Resp
   const deliveryFee = 0;
   const total = subtotal + deliveryFee;
 
-  const order = await prisma.$transaction(async (tx) => {
+  const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const created = await tx.order.create({
       data: {
         userId,

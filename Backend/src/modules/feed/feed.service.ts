@@ -54,7 +54,7 @@ export async function getPersonalisedFeed(
     where: { userId },
     select: { sellerId: true },
   });
-  const followedIds = [...new Set(follows.map((f) => f.sellerId))];
+  const followedIds = [...new Set(follows.map((f: { sellerId: string }) => f.sellerId))];
 
   const candidateLimit = Math.max(limit * 5, 50);
 
@@ -87,7 +87,7 @@ export async function getPersonalisedFeed(
           ${10_000}
         )
     `;
-    const nearbyIds = [...new Set(nearbySellerRows.map((r) => r.id))];
+    const nearbyIds = [...new Set(nearbySellerRows.map((r: { id: string }) => r.id))];
     if (nearbyIds.length > 0) {
       postsFromNearby = await prisma.post.findMany({
         where: { sellerId: { in: nearbyIds } },

@@ -101,7 +101,7 @@ export async function getSellerFollowersPaginated(
     },
   });
 
-  const followers = rows.map((r) => r.user) as unknown as SafeUser[];
+  const followers = rows.map((r: { user: SafeUser }) => r.user) as unknown as SafeUser[];
 
   return { total: total!, followers };
 }

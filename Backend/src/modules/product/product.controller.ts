@@ -7,6 +7,8 @@ import { getRedis } from "../../db/redis.client.js";
 import { uploadBufferToImageKit } from "../../shared/utils/imagekitUpload.js";
 import type { Prisma } from "../../generated/prisma/index.js";
 
+type ImageKitUploadResult = Awaited<ReturnType<typeof uploadBufferToImageKit>>;
+
 const productInclude = {
   seller: {
     select: {
@@ -88,7 +90,7 @@ export const createProductController = asyncHandler(
         }),
       ),
     );
-    const imageUrls = uploads.map((u) => u.url as string);
+    const imageUrls = uploads.map((u: ImageKitUploadResult) => u.url as string);
 
     const product = await prisma.product.create({
       data: {
@@ -308,7 +310,7 @@ export const updateProductController = asyncHandler(
           }),
         ),
       );
-      images = uploads.map((u) => u.url as string);
+      images = uploads.map((u: ImageKitUploadResult) => u.url as string);
     }
 
     const updateData: any = {

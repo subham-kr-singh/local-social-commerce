@@ -58,7 +58,7 @@ async function notifyFollowersStreamLive(sellerId: string, streamId: string, sch
   if (!followers.length) return;
 
   await prisma.notification.createMany({
-    data: followers.map((f) => ({
+    data: followers.map((f: { userId: string }) => ({
       recipientId: f.userId,
       recipientType: "USER",
       type: "STREAM_LIVE",

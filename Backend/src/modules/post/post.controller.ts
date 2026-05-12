@@ -8,6 +8,8 @@ import { uploadBufferToImageKit } from "../../shared/utils/imagekitUpload.js";
 import { PostService } from "./post.service.js";
 import { emitNewPost } from "../../realtime/post.events.js";
 
+type ImageKitUploadResult = Awaited<ReturnType<typeof uploadBufferToImageKit>>;
+
 function feedCacheKey(params: {
   city?: string;
   sellerId?: string;
@@ -70,7 +72,7 @@ export const createPostController = asyncHandler(async (req: Request, res: Respo
     ),
   );
 
-  const mediaUrls = uploads.map((u) => u.url as string);
+  const mediaUrls = uploads.map((u: ImageKitUploadResult) => u.url as string);
 
   const post = await prisma.post.create({
     data: {
