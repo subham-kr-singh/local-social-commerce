@@ -235,6 +235,11 @@ model Order {
   deliveryFee Float @default(0)
   total       Float
 
+  /// Razorpay order id (e.g. order_xxx) once checkout session is created
+  razorpayOrderId   String? @unique
+  /// Razorpay payment id (e.g. pay_xxx) after successful capture
+  razorpayPaymentId String?
+
   // Snapshot of delivery address at order time
   deliveryAddress Json // { name, phone, street, city, state, pincode }
 

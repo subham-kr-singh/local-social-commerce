@@ -5,6 +5,7 @@ import { ApiResponse } from "../../shared/utils/ApiResponse.js";
 import { prisma } from "../../db/prisma.client.js";
 import { getIo } from "../../realtime/io.js";
 import type { Prisma } from "../../generated/prisma/index.js";
+import { isRazorpayConfigured } from "../../config/razorpay.config.js";
 
 const sellerSelect = {
   select: {
@@ -146,7 +147,24 @@ export const createOrderController = asyncHandler(async (req: Request, res: Resp
     });
   }
 
-  res.status(201).json(new ApiResponse(201, "Order placed", { order }));
+  res.status(201).json(
+    new ApiResponse(201, "Order placed", {
+      order,
+      ...(isRazorpayConfigured()
+        ? {
+            payments: {
+              razorpay: {
+                createCheckout: {
+                  method: "POST" as const,
+                  path: "/api/v1/payments/razorpay/order",
+                  body: { orderId: order!.id },
+                },
+              },
+            },
+          }
+        : {}),
+    }),
+  );
 });
 
 export const getUserOrdersController = asyncHandler(async (req: Request, res: Response) => {

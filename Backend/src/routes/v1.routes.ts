@@ -10,6 +10,7 @@ import likeRouter from "../modules/like/like.routes.js";
 import commentRouter from "../modules/comment/comment.routes.js";
 import feedRouter from "../modules/feed/feed.routes.js";
 import profileRouter from "../modules/profile/profile.routes.js";
+import paymentRouter from "../modules/payment/payment.routes.js";
 
 const v1 = Router();
 
@@ -24,5 +25,6 @@ v1.use("/like", likeRouter);
 v1.use("/comments", commentRouter);
 v1.use("/feed", feedRouter);
 v1.use("/profile", profileRouter);
+v1.use("/payments", paymentRouter);
 
 export default v1;

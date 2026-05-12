@@ -32,7 +32,16 @@ class App {
 
   private setMiddlewares(): void {
     this.app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
-    this.app.use(express.json());
+    this.app.use(
+      express.json({
+        verify: (req: express.Request, _res, buf: Buffer) => {
+          const pathOnly = req.originalUrl.split("?")[0] ?? "";
+          if (pathOnly === "/api/v1/payments/razorpay/webhook") {
+            req.rawBody = buf.toString("utf8");
+          }
+        },
+      }),
+    );
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(cookieParser());
   }
