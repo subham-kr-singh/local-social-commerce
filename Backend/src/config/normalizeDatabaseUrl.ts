@@ -19,7 +19,7 @@ export function normalizePostgresDatabaseUrl(url: string): string {
   if (!/sslmode=/i.test(out)) {
     out += (out.includes("?") ? "&" : "?") + "sslmode=require";
   }
-  if (/supabase\.co/i.test(out) && !/connect_timeout=/i.test(out)) {
+  if ((/supabase\.co/i.test(out) || /\.neon\.tech\b/i.test(out)) && !/connect_timeout=/i.test(out)) {
     out += "&connect_timeout=40";
   }
   return out;
