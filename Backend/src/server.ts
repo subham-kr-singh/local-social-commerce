@@ -1,3 +1,6 @@
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import "./config/env.js";
 import app from "./app.js";
 import { prisma } from "./db/prisma.client.js";
