@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { RtcRole, RtcTokenBuilder } from "agora-token";
+import { RtcRole, RtcTokenBuilder } from "../../lib/agoraRtcToken.js";
 import { agoraConfig } from "../../config/agora.config.js";
 import { asyncHandler } from "../../shared/utils/asyncHandler.js";
 import { ApiError } from "../../shared/utils/ApiError.js";
@@ -235,12 +235,22 @@ export const generateAgoraTokenController = asyncHandler(
       throw new ApiError(500, "Agora is not configured");
     }
 
+    const appId = agoraConfig.appId.trim();
+    const appCert = agoraConfig.appCertificate.trim();
+    const hex32 = /^[0-9a-fA-F]{32}$/;
+    if (!hex32.test(appId) || !hex32.test(appCert)) {
+      throw new ApiError(
+        500,
+        "Agora App ID and App Certificate must each be exactly 32 hexadecimal characters (see Agora Console → project → App ID / Primary certificate).",
+      );
+    }
+
     const rtcRole = body.role === "host" ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
     const uid = 0;
 
     const token = RtcTokenBuilder.buildTokenWithUid(
-      agoraConfig.appId,
-      agoraConfig.appCertificate,
+      appId,
+      appCert,
       stream.streamKey,
       uid,
       rtcRole,
@@ -248,11 +258,18 @@ export const generateAgoraTokenController = asyncHandler(
       expirationTimeInSeconds,
     );
 
+    if (!token) {
+      throw new ApiError(
+        500,
+        "Failed to generate Agora token. Ensure AGORA_APP_ID and AGORA_APP_CERTIFICATE are each exactly 32 hexadecimal characters from the Agora Console.",
+      );
+    }
+
     res.status(200).json(
       new ApiResponse(200, "Agora token generated", {
         token,
         channel: stream.streamKey,
-        appId: agoraConfig.appId,
+        appId,
         uid,
         expiresIn,
       }),

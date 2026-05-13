@@ -19,16 +19,21 @@
  *   5. Join the same channel in two clients; host publishes, audience subscribes.
  */
 import "dotenv/config";
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
-const { RtcRole, RtcTokenBuilder } = require("agora-token") as typeof import("agora-token");
+import { RtcRole, RtcTokenBuilder } from "../src/lib/agoraRtcToken.js";
 
 const appId = process.env.AGORA_APP_ID?.trim();
 const cert = process.env.AGORA_APP_CERTIFICATE?.trim();
 
 if (!appId || !cert) {
   console.error("Missing AGORA_APP_ID or AGORA_APP_CERTIFICATE in environment.");
+  process.exit(1);
+}
+
+const hex32 = /^[0-9a-fA-F]{32}$/;
+if (!hex32.test(appId) || !hex32.test(cert)) {
+  console.error(
+    "Agora token v2 requires AGORA_APP_ID and AGORA_APP_CERTIFICATE each to be exactly 32 hexadecimal characters (copy from Agora Console).",
+  );
   process.exit(1);
 }
 
