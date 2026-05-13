@@ -14,5 +14,12 @@ export function attachSocketIoRedisAdapter(io: Server): void {
 
   const pubClient = new Redis(url, { maxRetriesPerRequest: null });
   const subClient = pubClient.duplicate();
+
+  for (const c of [pubClient, subClient]) {
+    c.on("error", (err: Error) => {
+      console.error("[redis-adapter] Redis client error (check REDIS_URL on Railway):", err.message);
+    });
+  }
+
   io.adapter(createAdapter(pubClient, subClient));
 }

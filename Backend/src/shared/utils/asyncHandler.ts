@@ -8,6 +8,6 @@ type AsyncFn = (
 
 export const asyncHandler =
   (fn: AsyncFn): RequestHandler =>
-  (req, res, next) => {
+  (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };

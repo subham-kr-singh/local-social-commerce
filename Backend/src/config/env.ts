@@ -1,6 +1,14 @@
 import { z } from "zod";
 import dotenv from "dotenv";
+import { normalizePostgresDatabaseUrl } from "./normalizeDatabaseUrl.js";
+
 dotenv.config();
+
+const rawEnv = { ...process.env };
+if (rawEnv.DATABASE_URL) {
+  rawEnv.DATABASE_URL = normalizePostgresDatabaseUrl(rawEnv.DATABASE_URL);
+  process.env.DATABASE_URL = rawEnv.DATABASE_URL;
+}
 
 const envSchema = z.object({
   NODE_ENV:             z.enum(["development", "production", "test"]).default("development"),
@@ -26,7 +34,7 @@ const envSchema = z.object({
   IMAGEKIT_URL_ENDPOINT: z.string().optional(),
 });
 
-const parsed = envSchema.safeParse(process.env);
+const parsed = envSchema.safeParse(rawEnv);
 
 if (!parsed.success) {
   console.error("❌ Invalid environment variables:");

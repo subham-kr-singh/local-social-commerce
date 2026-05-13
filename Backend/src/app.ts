@@ -1,4 +1,4 @@
-import express, { type Application } from "express";
+import express, { type Application, type Request, type Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
@@ -15,12 +15,25 @@ class App {
   public app: Application;
   public httpServer: ReturnType<typeof createServer>;
   public io: Server;
+  private readonly corsOrigin: string | string[];
 
   constructor() {
     this.app = express();
+    if (env.NODE_ENV === "production") {
+      this.app.set("trust proxy", 1);
+    }
+
+    const allowedOrigins = env.CORS_ORIGIN.split(",").map((o) => o.trim()).filter(Boolean);
+    this.corsOrigin =
+      allowedOrigins.length === 0
+        ? "http://localhost:3000"
+        : allowedOrigins.length === 1
+          ? allowedOrigins[0]!
+          : allowedOrigins;
+
     this.httpServer = createServer(this.app);
     this.io = new Server(this.httpServer, {
-      cors: { origin: env.CORS_ORIGIN, methods: ["GET", "POST"] },
+      cors: { origin: this.corsOrigin, methods: ["GET", "POST"] },
     });
     attachSocketIoRedisAdapter(this.io);
     setIo(this.io);
@@ -31,10 +44,10 @@ class App {
   }
 
   private setMiddlewares(): void {
-    this.app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+    this.app.use(cors({ origin: this.corsOrigin, credentials: true }));
     this.app.use(
       express.json({
-        verify: (req: express.Request, _res, buf: Buffer) => {
+        verify: (req: Request, _res: Response, buf: Buffer) => {
           const pathOnly = req.originalUrl.split("?")[0] ?? "";
           if (pathOnly === "/api/v1/payments/razorpay/webhook") {
             req.rawBody = buf.toString("utf8");
@@ -47,7 +60,7 @@ class App {
   }
 
   private setRoutes(): void {
-    this.app.get("/", (_req, res) => {
+    this.app.get("/", (_req: Request, res: Response) => {
       res.status(200).json({ message: "Server is healthy" });
     });
 
@@ -72,7 +85,7 @@ class App {
     );
 
     // Expose raw OpenAPI JSON for tools like Postman / Insomnia
-    this.app.get("/api/docs.json", (_req, res) => {
+    this.app.get("/api/docs.json", (_req: Request, res: Response) => {
       res.setHeader("Content-Type", "application/json");
       res.send(swaggerSpec);
     });
