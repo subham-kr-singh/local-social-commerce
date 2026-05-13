@@ -3,7 +3,7 @@ import { ApiError } from "../../shared/utils/ApiError.js";
 import { redisGet, redisSetEx } from "../../shared/utils/redisCache.js";
 import { redisKeys } from "../../shared/utils/redisKeys.js";
 import { REDIS_TTL_FEED_PAGE_SEC } from "../../config/constants.js";
-import type { Prisma } from "../../generated/prisma/index.js";
+import type { Prisma } from "@prisma/client";
 
 const feedPostInclude = {
   seller: {

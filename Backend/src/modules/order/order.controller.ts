@@ -4,7 +4,7 @@ import { ApiError } from "../../shared/utils/ApiError.js";
 import { ApiResponse } from "../../shared/utils/ApiResponse.js";
 import { prisma } from "../../db/prisma.client.js";
 import { getIo } from "../../realtime/io.js";
-import type { Prisma } from "../../generated/prisma/index.js";
+import type { Prisma } from "@prisma/client";
 import { isRazorpayConfigured } from "../../config/razorpay.config.js";
 
 const sellerSelect = {

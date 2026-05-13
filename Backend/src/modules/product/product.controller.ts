@@ -5,7 +5,7 @@ import { ApiResponse } from "../../shared/utils/ApiResponse.js";
 import { prisma } from "../../db/prisma.client.js";
 import { getRedis } from "../../db/redis.client.js";
 import { uploadBufferToImageKit } from "../../shared/utils/imagekitUpload.js";
-import type { Prisma } from "../../generated/prisma/index.js";
+import type { Prisma } from "@prisma/client";
 
 type ImageKitUploadResult = Awaited<ReturnType<typeof uploadBufferToImageKit>>;
 
